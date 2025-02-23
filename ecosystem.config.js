@@ -1,4 +1,4 @@
-export const apps = [
+module.exports = [
   {
     name: "my-next-app",
     script: "npm",
