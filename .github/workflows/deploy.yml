@@ -1,7 +1,3 @@
-
-# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: Node CI
 
 on:
@@ -19,15 +15,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: pnpm/action-setup@v4
-        with:
           cache: 'pnpm'
+          
       - run: pnpm install
       - run: pnpm run build
+      
       - name: Deploy to Staging server
         uses: easingthemes/ssh-deploy@main
         env:
@@ -37,4 +38,9 @@ jobs:
           REMOTE_USER: root
           REMOTE_PORT: 22
           TARGET: "/www/wwwroot/hakurei77-llm-project"
-          SCRIPT_AFTER: lsof -i :8080 -t | xargs kill -9 && sh /www/server/nodejs/vhost/scripts/hakurei77-llm-project.sh
+          SCRIPT_AFTER: |
+            if lsof -i :8080 -t; then
+              lsof -i :8080 -t | xargs kill
+              sleep 2
+            fi
+            sh /www/server/nodejs/vhost/scripts/hakurei77-llm-project.sh
