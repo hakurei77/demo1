@@ -15,13 +15,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          
+      - name: Install pnpm
+        run: npm install -g pnpm
           
       - name: Install Dependencies
-        run: npm install
+        run: pnpm install
         
       - name: Build Application
-        run: npm run build
+        run: pnpm run build
         
       - name: Deploy to Server
         uses: appleboy/scp-action@master
@@ -29,10 +32,10 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
-          source: "dist/,package.json,package-lock.json"
+          source: "dist/,package.json,pnpm-lock.yaml"
           target: ${{ secrets.DEPLOY_PATH }}
           
-      - name: Execute Remote Commands
+      - name: Install dependencies on server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -40,6 +43,15 @@ jobs:
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            npm install --production
-            pm2 delete demo1 || true
-            pm2 start dist/main.js --name demo1
+            npm install -g pnpm
+            pnpm install --production
+
+      - name: Restart PM2 process
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            pm2 restart ecosystem.config.js --env production
