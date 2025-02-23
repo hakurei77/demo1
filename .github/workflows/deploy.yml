@@ -1,60 +1,45 @@
-name: Deploy Next.js
+name: Deploy to BaoTa
 
 on:
   push:
     branches:
-      - main
+      - main  # 或者你的主分支名称
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build project
-        run: pnpm run build
-
-      - name: Deploy to Debian Server
+          node-version: '20'
+          
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Build Application
+        run: npm run build
+        
+      - name: Deploy to Server
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "."
-          target: "/www/wwwroot/hakurei77-llm-project"
-
-      - name: Install dependencies on server
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          source: "dist/,package.json,package-lock.json"
+          target: ${{ secrets.DEPLOY_PATH }}
+          
+      - name: Execute Remote Commands
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            cd /www/wwwroot/hakurei77-llm-project
-            npm install -g pnpm
-            pnpm install --production
-
-      - name: Restart PM2 process
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /www/wwwroot/hakurei77-llm-project
-            pm2 restart ecosystem.config.js --env production
+            cd ${{ secrets.DEPLOY_PATH }}
+            npm install --production
+            pm2 delete demo1 || true
+            pm2 start dist/main.js --name demo1
