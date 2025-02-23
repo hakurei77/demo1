@@ -3,7 +3,7 @@ name: Deploy to BaoTa
 on:
   push:
     branches:
-      - main  # 或者你的主分支名称
+      - main
 
 jobs:
   deploy:
@@ -43,7 +43,8 @@ jobs:
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            npm install -g pnpm
+            npm install -g pnpm --prefix /usr/local
+            export PATH=$PATH:/usr/local/bin
             pnpm install --production
 
       - name: Restart PM2 process
