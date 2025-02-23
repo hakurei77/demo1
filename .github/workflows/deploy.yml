@@ -36,7 +36,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
-          target: "/www/wwwroot/my-next-app"
+          target: "/www/wwwroot/hakurei77-llm-project"
 
       - name: Install dependencies on server
         uses: appleboy/ssh-action@master
@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /www/wwwroot/my-next-app
+            cd /www/wwwroot/hakurei77-llm-project
             npm install -g pnpm
             pnpm install --production
 
@@ -56,5 +56,5 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /www/wwwroot/my-next-app
+            cd /www/wwwroot/hakurei77-llm-project
             pm2 restart ecosystem.config.js --env production
