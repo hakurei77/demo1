@@ -1,4 +1,8 @@
-name: Deploy Next.js
+
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node CI
 
 on:
   push:
@@ -6,55 +10,31 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [22.x]
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
         with:
-          node-version: 22
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+          node-version: ${{ matrix.node-version }}
+      - uses: pnpm/action-setup@v4
         with:
-          version: 8
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build project
-        run: pnpm run build
-
-      - name: Deploy to Debian Server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "."
-          target: "/www/wwwroot/hakurei77-llm-project"
-
-      - name: Install dependencies on server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /www/wwwroot/hakurei77-llm-project
-            npm install -g pnpm
-            pnpm install --production
-
-      - name: Restart PM2 process
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /www/wwwroot/hakurei77-llm-project
-            pm2 restart ecosystem.config.js --env production
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm run build
+      - name: Deploy to Staging server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SOURCE: 'dist/'
+          REMOTE_HOST: 1.92.82.236
+          REMOTE_USER: root
+          REMOTE_PORT: 22
+          TARGET: "/www/wwwroot/hakurei77-llm-project"
+          SCRIPT_AFTER: lsof -i :8080 -t | xargs kill -9 && sh /www/server/nodejs/vhost/scripts/hakurei77-llm-project.sh
