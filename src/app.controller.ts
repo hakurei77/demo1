@@ -25,4 +25,8 @@ export class AppController {
   newTestsaa(): string {
     return this.appService.newTestss();
   }
+  @Get("huan")
+  mma(): string {
+    return this.appService.mma();
+  }
 }

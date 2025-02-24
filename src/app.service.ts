@@ -14,4 +14,7 @@ export class AppService {
   newTestss(): string {
     return 'this is a tesfefefet';
   }
+  mma(): string {
+    return 'thtesfefefet';
+  }
 }
