@@ -25,4 +25,8 @@ export class AppController {
   mma(): string {
     return this.appService.mma();
   }
+  @Get("ma")
+  mmaggg(): string {
+    return "ddppddpp";
+  }
 }
