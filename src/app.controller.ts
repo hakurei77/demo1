@@ -17,4 +17,8 @@ export class AppController {
   newTest(): string {
     return this.appService.newTest();
   }
+  @Get("ccb")
+  newTests(): string {
+    return this.appService.newTestss();
+  }
 }

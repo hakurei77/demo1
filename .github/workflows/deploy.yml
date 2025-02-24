@@ -1,0 +1,58 @@
+name: Deploy to BaoTa
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Install pnpm
+        run: npm install -g pnpm
+          
+      - name: Install Dependencies
+        run: pnpm install
+        
+      - name: Build Application
+        run: pnpm run build
+        
+      - name: Deploy to Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          source: "."
+          target: ${{ secrets.DEPLOY_PATH }}
+          
+      - name: Install dependencies on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            npm install -g pnpm --prefix /usr/local
+            export PATH=$PATH:/usr/local/bin
+            pnpm install --production
+
+      - name: Restart PM2 process
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            pm2 restart ecosystem.config.js --env production

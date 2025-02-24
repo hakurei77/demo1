@@ -11,4 +11,7 @@ export class AppService {
   newTest(): string {
     return 'this is a test';
   }
+  newTestss(): string {
+    return 'this is a tesfefefet';
+  }
 }
