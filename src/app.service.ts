@@ -8,4 +8,7 @@ export class AppService {
   getabc(): string {
     return 'Hello World!ggggg';
   }
+  newTest(): string {
+    return 'this is a test';
+  }
 }

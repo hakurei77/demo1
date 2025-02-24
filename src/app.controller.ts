@@ -13,4 +13,8 @@ export class AppController {
   getTest(): string {
     return this.appService.getabc();
   }
+  @Get("ppp")
+  newTest(): string {
+    return this.appService.newTest();
+  }
 }
