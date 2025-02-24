@@ -21,4 +21,8 @@ export class AppController {
   newTests(): string {
     return this.appService.newTestss();
   }
+  @Get("huanxiaomang")
+  newTestsaa(): string {
+    return this.appService.newTestss();
+  }
 }
