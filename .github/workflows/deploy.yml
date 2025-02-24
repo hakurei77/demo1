@@ -55,4 +55,5 @@ jobs:
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            pm2 restart ecosystem.config.js --env production
+            pm2 delete ecosystem.config.js || true
+            pm2 start ecosystem.config.js --env production
