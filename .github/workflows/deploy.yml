@@ -54,25 +54,8 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            # 查找并杀死占用 8080 端口的进程
-            PORT_PID=$(lsof -t -i:8080 || true)
-            if [ ! -z "$PORT_PID" ]; then
-              echo "Killing process on port 8080"
-              kill -9 $PORT_PID
-            fi
-            
-            # 确保 PM2 进程完全停止
+            # 强制释放8080端口
+            sudo lsof -ti :8080 | xargs -r sudo kill -9
+            # 重启应用
             cd ${{ secrets.DEPLOY_PATH }}
-            pm2 delete all || true
-            
-            # 等待端口完全释放
-            sleep 2
-            
-            # 启动新的应用实例
             pm2 restart ecosystem.config.js --env production
-            
-            # 检查应用是否成功启动
-            pm2 list
-            
-            # 显示应用日志
-            pm2 logs --lines 10
